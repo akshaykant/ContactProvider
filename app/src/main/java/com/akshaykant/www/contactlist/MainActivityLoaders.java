@@ -1,6 +1,8 @@
 package com.akshaykant.www.contactlist;
 
 import android.content.ContentResolver;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -39,11 +41,27 @@ public class MainActivityLoaders extends AppCompatActivity implements LoaderMana
 
     private int mPosition = RecyclerView.NO_POSITION;
 
+
     /*
    * This number will uniquely identify our Loader and is chosen arbitrarily. You can change this
    * to any number you like, as long as you use the same variable name.
    */
     private static final int CONTACTS_LOADER_ID = 22;
+
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+
+
+            List<Contact> contactList = (List<Contact>) msg.obj;
+            mContactsAdapter.swapCursor(contactList);
+
+            // If mPosition equals RecyclerView.NO_POSITION, set it to 0
+            if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
+            // Smooth scroll the RecyclerView to mPosition
+            mRecyclerView.smoothScrollToPosition(mPosition);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +84,7 @@ public class MainActivityLoaders extends AppCompatActivity implements LoaderMana
          * change the child layout size in the RecyclerView
          */
         mRecyclerView.setHasFixedSize(true);
-        mContactsAdapter = new ContactsAdapter(this);
+        mContactsAdapter = new ContactsAdapter(this, null);
 
 
         /* Setting the adapter attaches it to the RecyclerView in our layout. */
@@ -101,18 +119,31 @@ public class MainActivityLoaders extends AppCompatActivity implements LoaderMana
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
         //The framework will take care of closing the
         // old cursor once we return.
 
 
-        List<Contact> contactList = getContactList(cursor);
-        mContactsAdapter.swapCursor(contactList);
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                List<Contact> contactList = getContactList(cursor);
+                Message m = new Message();
+                m.obj = contactList;
+                handler.sendMessage(m);
+            }
+        };
+
+        Thread contactListThread = new Thread(runnable);
+        contactListThread.start();
+
+        //List<Contact> contactList = getContactList(cursor);
+        /*mContactsAdapter.swapCursor(contactList);
 
         // If mPosition equals RecyclerView.NO_POSITION, set it to 0
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         // Smooth scroll the RecyclerView to mPosition
-        mRecyclerView.smoothScrollToPosition(mPosition);
+        mRecyclerView.smoothScrollToPosition(mPosition);*/
 
     }
 

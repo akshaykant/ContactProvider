@@ -1,7 +1,6 @@
 package com.akshaykant.www.contactlist;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,10 +20,10 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
     private List<Contact> contactList;
     private Context mContext;
-    private Cursor mCursor;
 
-    public ContactsAdapter(Context mContext) {
+    public ContactsAdapter(Context mContext, List<Contact> list) {
         this.mContext = mContext;
+        this.contactList = list;
     }
 
     @Override
@@ -48,6 +47,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     @Override
     public int getItemCount() {
 
+        if (contactList != null)
+            return contactList.size();
+        else
             return 0;
     }
 
